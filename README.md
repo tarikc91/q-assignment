@@ -8,8 +8,8 @@
 
 1. Clone the repository
 2. Run <code>composer install</code>
-3. Run <code>./vendor/bin/sail up</code>
-4. Open <code>http://localhost</code>
+3. If using Docker => Run <code>./vendor/bin/sail up</code> and open <code>http://localhost</code>
+4. If using local env => Run <code>php artisan serve</code> and open <code>http://127.0.0.1:8000</code>
 
 ## Commands
 To create a new author using a command run <code>./vendor/bin/sail artisan qss:create-author</code> and follow the steps.
