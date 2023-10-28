@@ -10,3 +10,6 @@
 2. Run <code>composer install</code>
 3. Run <code>./vendor/bin/sail up</code>
 4. Open <code>http://localhost</code>
+
+## Commands
+To create a new author using a command run <code>./vendor/bin/sail artisan qss:create-author</code> and follow the steps.
