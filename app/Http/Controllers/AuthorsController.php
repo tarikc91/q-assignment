@@ -3,55 +3,63 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
+use Symfony\Component\HttpFoundation\Response;
 use App\Repositories\Contracts\AuthorRepository;
 
 class AuthorsController
 {
-    // We are injecting a concrete implementation of the AuthorRepository through the RepositoryServiceProvider
+    /**
+     * Constructor
+     *
+     * @param AuthorRepository $authorRepository
+     */
     public function __construct(protected AuthorRepository $authorRepository) {}
 
+    /**
+     * Returns authors index page
+     *
+     * @return View
+     */
     public function index(): View
     {
-        $authors = $this->authorRepository->all();
-
         return view('authors.index', [
-            'authors' => $authors
+            'authors' => $this->authorRepository->all()
         ]);
     }
 
-    public function show(mixed $id): View
+    /**
+     * Shows an author
+     *
+     * @param string $id
+     * @return View
+     */
+    public function show(string $id): View
     {
         $author = $this->authorRepository->find($id);
 
-        if($author) {
-            return view('authors.show', [
-                'author' => $author
-            ]);
+        if(!$author) {
+            abort(404);
         }
 
-        abort(404);
+        return view('authors.show', [
+            'author' => $author
+        ]);
     }
 
-    public function delete(mixed $id): RedirectResponse
+    /**
+     * Deltete an author
+     *
+     * @param string $id
+     * @return Response
+     */
+    public function delete(string $id): Response
     {
-        $author = $this->authorRepository->find($id);
+        $message = $this->authorRepository->delete($id) ?
+            ['success', 'Author has been deleted.'] :
+            ['error', 'Author could not be deleted.'];
 
-        if($author) {
-            if(!empty($author->books)) {
-                session()->flash('error', 'Author can not be deleted because related books exist.');
-                return redirect()->route('authors.index');
-            }
-
-            if($this->authorRepository->delete($id)) {
-                session()->flash('success', 'Author has been deleted.');
-            } else {
-                session()->flash('error', 'Author was not deleted.');
-            }
-            return redirect()->route('authors.index');
-        }
-
-        session()->flash('error', 'Author does not exist.');
-        return redirect()->route('authors.index');
+        return redirect()
+            ->route('authors.index')
+            ->with(extract($message));
     }
 }

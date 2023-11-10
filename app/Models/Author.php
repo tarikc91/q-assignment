@@ -12,4 +12,14 @@ class Author extends BaseModel
     public $biography;
     public $placeOfBirth;
     public $books;
+
+    /**
+     * Checks if the author complies with all the rules before it can be deleted
+     *
+     * @return boolean
+     */
+    public function eligibleForDelete(): bool
+    {
+        return empty($this->books);
+    }
 }
