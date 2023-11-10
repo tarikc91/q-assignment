@@ -3,41 +3,61 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\CreateBookRequest;
 use App\Repositories\Contracts\BookRepository;
+use Symfony\Component\HttpFoundation\Response;
 use App\Repositories\Contracts\AuthorRepository;
 
 class BooksController
 {
-    public function __construct(protected AuthorRepository $authorRepository, protected BookRepository $bookRepository) {}
+    /**
+     * Constructor for BooksController
+     *
+     * @param AuthorRepository $authorRepository
+     * @param BookRepository $bookRepository
+     */
+    public function __construct(
+        protected AuthorRepository $authorRepository,
+        protected BookRepository $bookRepository
+    ) {}
 
+    /**
+     * Returns a view to create a new book
+     *
+     * @return View
+     */
     public function create(): View
     {
-        $authors = $this->authorRepository->all();
-
         return view('books.create', [
-            'authors' => $authors
+            'authors' => $this->authorRepository->all()
         ]);
     }
 
-    public function store(CreateBookRequest $request): RedirectResponse
+    /**
+     * Stores a new book
+     *
+     * @param CreateBookRequest $request
+     * @return Response
+     */
+    public function store(CreateBookRequest $request): Response
     {
         $this->bookRepository->create($request->all());
 
-        session()->flash('success', 'A new book is created.');
-
-        return redirect()->route('authors.show', ['author' => $request->author_id]);
+        return redirect()
+            ->route('authors.show', ['author' => $request->author_id])
+            ->with('success', 'A new book is created.');
     }
 
-    public function delete(mixed $id): RedirectResponse
+    /**
+     * Deletes a book
+     *
+     * @param string $id
+     * @return Response
+     */
+    public function delete(string $id): Response
     {
-        if($this->bookRepository->delete($id)) {
-            session()->flash('success', 'Book has been deleted.');
-        } else {
-            session()->flash('error', 'Book was not deleted.');
-        }
+        $this->bookRepository->delete($id);
 
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Book has been deleted.');
     }
 }
