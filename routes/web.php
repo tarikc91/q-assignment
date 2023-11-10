@@ -24,13 +24,16 @@ Route::middleware('auth.qss')->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::post('logout', [QssAuthController::class, 'logout'])->name('logout');
 
-    Route::prefix('authors')->name('authors.')->group(function () {
-        Route::get('/', [AuthorsController::class, 'index'])->name('index');
-        Route::get('{author}', [AuthorsController::class, 'show'])->name('show');
-        Route::delete('{author}', [AuthorsController::class, 'delete'])
-            ->middleware('author.can_be_deleted')
-            ->name('delete');
-    });
+    Route::prefix('authors')
+        ->name('authors.')
+        ->middleware('author.exists')
+        ->group(function () {
+            Route::get('/', [AuthorsController::class, 'index'])->name('index');
+            Route::get('{author}', [AuthorsController::class, 'show'])->name('show');
+            Route::delete('{author}', [AuthorsController::class, 'delete'])
+                ->middleware('author.can_be_deleted')
+                ->name('delete');
+        });
 
     Route::prefix('books')->name('books.')->group(function () {
         Route::get('create', [BooksController::class, 'create'])->name('create');

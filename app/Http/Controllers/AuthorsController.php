@@ -35,14 +35,8 @@ class AuthorsController
      */
     public function show(string $id): View
     {
-        $author = $this->authorRepository->find($id);
-
-        if(!$author) {
-            abort(404);
-        }
-
         return view('authors.show', [
-            'author' => $author
+            'author' => $this->authorRepository->find($id)
         ]);
     }
 

@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Repositories\Contracts\AuthorRepository;
 
-class CanDeleteAuthorMiddleware
+class AuthorExistsMiddleware
 {
     /**
      * Constructor
@@ -23,12 +23,12 @@ class CanDeleteAuthorMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $author = $this->authorRepository->find($request->route()->author);
+        $authorId = $request->route()->author;
 
-        if(!$author?->eligibleForDelete()) {
-            return redirect()
-                ->route('authors.index')
-                ->with('error', 'Author can not be deleted.');
+        if(
+            $authorId &&
+            !$this->authorRepository->find($authorId)) {
+            abort(404);
         }
 
         return $next($request);
