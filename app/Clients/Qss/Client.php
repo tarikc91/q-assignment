@@ -76,14 +76,21 @@ class Client
         }
     }
 
-    public function getAccessToken(string $email, string $password): ResponseInterface
+    public function getAccessToken(string $email, string $password): array
     {
         $body = [
             'email' => $email,
             'password' => $password
         ];
 
-        return $this->request('POST', 'token', [], $body);
+        $response = $this->request('POST', 'token', [], $body);
+
+        $responseBody = json_decode($response->getBody(), true);
+
+        return [
+            'token' => $responseBody['token_key'],
+            'user' => $responseBody['user']
+        ];
     }
 
     public function getAuthors(array $queryParams = []): ResponseInterface
