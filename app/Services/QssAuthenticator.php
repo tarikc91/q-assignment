@@ -6,7 +6,7 @@ use DateTime;
 use DateTimeImmutable;
 use App\Models\AuthUser;
 use App\Clients\Qss\Client as QssClient;
-use App\Clients\Qss\Exceptions\RequestException as QssRequestException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use App\Transformers\Qss\AuthUserTransformer as QssAuthUserTransformer;
 
 class QssAuthenticator
@@ -18,20 +18,17 @@ class QssAuthenticator
      * @param string $password
      * @return boolean|AuthUser
      */
-    public static function attemptLogin(string $email, string $password): bool|AuthUser
+    public static function attemptLogin(string $email, string $password): array|AuthUser
     {
         try {
             $response = resolve(QssClient::class)->getAccessToken($email, $password);
-            
-            static::login($response['token'], $response['user']);
-
-            return resolve(AuthUser::class);
-        } catch(QssRequestException $e) {
-            if($e->getCode() === 403) {
+            return static::login($response['token'], $response['user']);
+        } catch(HttpException $e) {
+            if($e->getStatusCode() === 403) {
                 return ['error' => 'User not found or inactive or password not valid.'];
-            } else {
-                return ['error' => 'Something went wrong! Please try again.'];
             }
+
+            throw $e;
         }
     }
 
@@ -51,17 +48,17 @@ class QssAuthenticator
      *
      * @param string $token
      * @param array $user
-     * @return void
+     * @return AuthUser
      */
-    private static function login(string $token, array $user): void
+    private static function login(string $token, array $user): AuthUser
     {
         session([
-            'qss_token' => $token,
             'qss_user' => $user,
+            'qss_token' => $token,
             'qss_token_expires_at' => static::getTokenExpirationDate()
         ]);
 
-        static::setAuthUser($user);
+        return static::createAuthUser($user);
     }
 
     /**
@@ -77,15 +74,62 @@ class QssAuthenticator
     }
 
     /**
-     * Sets auth user
+     * Creates an authUser
      *
      * @param array $user
-     * @return void
+     * @return AuthUser
      */
-    public static function setAuthUser(array $user): void
+    public static function createAuthUser(array $user): AuthUser
     {
         $authUser = resolve(AuthUser::class);
+
         $authUser->setDataFromTransformer(new QssAuthUserTransformer($user));
+
         $authUser->setLoggedIn(true);
+
+        return $authUser;
+    }
+
+    /**
+     * Returns auth user
+     *
+     * @return AuthUser|null
+     */
+    public static function user(): ?AuthUser
+    {
+        $authUser = resolve(AuthUser::class);
+
+        if(!$authUser->isLoggedIn()) {
+            return null;
+        }
+
+        return $authUser;
+    }
+
+    /**
+     * Check if the user is logged in
+     *
+     * @return boolean
+     */
+    public static function check(): bool
+    {
+        return (bool) static::user();
+    }
+
+    /**
+     * Sets the logged in user
+     *
+     * @return void
+     */
+    public static function setUser(): void
+    {
+        if(
+            session('qss_user') &&
+            session('qss_token') &&
+            session('qss_token_expires_at') &&
+            now() < new DateTime(session('qss_token_expires_at'))
+        ) {
+            static::createAuthUser(session('qss_user'));
+        }
     }
 }

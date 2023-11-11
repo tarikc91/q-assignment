@@ -7,8 +7,8 @@ use Illuminate\Console\Command;
 use App\Clients\Qss\Client as QssClient;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Contracts\Console\PromptsForMissingInput;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use App\Transformers\Qss\AuthorTransformer as QssAuthorTransformer;
-use App\Clients\Qss\Exceptions\RequestException as QssRequestException;
 
 class CreateAuthorCommand extends Command implements PromptsForMissingInput
 {
@@ -40,7 +40,7 @@ class CreateAuthorCommand extends Command implements PromptsForMissingInput
             $response = $client->getAccessToken($email, $password);
             $responseBody = json_decode($response->getBody(), true);
             $token = $responseBody['token_key'];
-        } catch(QssRequestException $e) {
+        } catch(HttpException $e) {
             if($e->getCode() === 403) {
                 $this->error('User not found or inactive or password not valid.');
             } else {
@@ -83,7 +83,7 @@ class CreateAuthorCommand extends Command implements PromptsForMissingInput
                     [$author->id, $author->firstName, $author->lastName, $author->birthday?->format('d-m-Y'), $author->biography, $author->gender, $author->placeOfBirth]
                 ]
             );
-        } catch(QssRequestException) {
+        } catch(HttpException) {
             $this->error('Something went wrong while trying to create a new author.');
         }
 

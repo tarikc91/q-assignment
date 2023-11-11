@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuthUser;
 use App\Services\QssAuthenticator;
 use App\Http\Requests\LoginRequest;
 use Illuminate\Contracts\View\View;
@@ -29,11 +30,11 @@ class LoginController
     {
         $result = QssAuthenticator::attemptLogin($request->email, $request->password);
 
-        if($result['error']) {
-            return redirect()->back()->with('error', $result['error']);
+        if($result instanceof AuthUser) {
+            return redirect()->route('home');
         }
 
-        return redirect()->route('home');
+        return redirect()->back()->with('error', $result['error']);
     }
 
     /**

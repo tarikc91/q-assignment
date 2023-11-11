@@ -4,10 +4,10 @@ namespace App\Repositories\QSS;
 
 use App\Models\Author;
 use App\Clients\Qss\Client as QssClient;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Transformers\Qss\AuthorTransformer as QssAuthorTransformer;
-use App\Clients\Qss\Exceptions\RequestException as QssRequestException;
 use App\Repositories\Contracts\AuthorRepository as AuthorRepositoryInterface;
-use App\Clients\Qss\Exceptions\ModelNotFoundException as QssModelNotFoundException;
 
 class AuthorRepository implements AuthorRepositoryInterface
 {
@@ -24,7 +24,7 @@ class AuthorRepository implements AuthorRepositoryInterface
             }, $items);
 
             return $authors;
-        } catch(QssRequestException $e) {
+        } catch(HttpException $e) {
             abort($e->getCode(), $e->getMessage());
         }
     }
@@ -36,9 +36,9 @@ class AuthorRepository implements AuthorRepositoryInterface
             $item = json_decode($response->getBody(), true);
 
             return Author::createFromTransformer(new QssAuthorTransformer($item));
-        } catch(QssModelNotFoundException) {
+        } catch(NotFoundHttpException) {
             return null;
-        } catch(QssRequestException $e) {
+        } catch(HttpException $e) {
             abort($e->getCode(), $e->getMessage());
         }
     }
@@ -48,9 +48,9 @@ class AuthorRepository implements AuthorRepositoryInterface
         try {
             $this->client->deleteAuthor($id);
             return true;
-        } catch(QssModelNotFoundException) {
+        } catch(NotFoundHttpException) {
             return false;
-        } catch(QssRequestException $e) {
+        } catch(HttpException $e) {
             abort($e->getCode(), $e->getMessage());
         }
     }

@@ -3,11 +3,9 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use DateTime;
-use App\Models\AuthUser;
 use Illuminate\Http\Request;
+use App\Services\QssAuthenticator;
 use Symfony\Component\HttpFoundation\Response;
-use App\Transformers\Qss\AuthUserTransformer as QssAuthUserTransformer;
 
 class QssAuthMiddleware
 {
@@ -18,26 +16,12 @@ class QssAuthMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $token = session('qss_token');
-        $tokenExpiresAt = session('qss_token_expires_at');
-        $user = session('qss_user');
+        QssAuthenticator::setUser();
 
-        if($token && $tokenExpiresAt && $user) {
-            $tokenExpiresAt = new DateTime($tokenExpiresAt);
-            $now = new DateTime();
-
-            if($now < $tokenExpiresAt) {
-                // Create a new AuthUser, which is a singleton, using the Laravel service container
-                // This object represents the logged in user and it will be available
-                // to all routes that are protected with this middleware
-                $authUser = app(AuthUser::class);
-                $authUser->setDataFromTransformer(new QssAuthUserTransformer($user));
-                $authUser->setLoggedIn(true);
-
-                return $next($request);
-            }
+        if(!QssAuthenticator::check()) {
+            return redirect()->route('login');
         }
 
-        return redirect()->route('login');
+        return $next($request);
     }
 }

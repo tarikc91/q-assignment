@@ -8,10 +8,8 @@ use GuzzleHttp\Handler\CurlHandler;
 use GuzzleHttp\Client as GuzzleClient;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Exception\RequestException;
-use App\Clients\Qss\Exceptions\RequestException as QssRequestException;
-use App\Clients\Qss\Exceptions\ModelNotFoundException as QssModelNotFoundException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class Client
 {
@@ -60,19 +58,15 @@ class Client
             $options['json'] = $body;
         }
 
-        try {
-            $response = $this->client->request($method, $path, $options);
+        $response = $this->client->request($method, $path, $options);
 
-            if ($response->getStatusCode() >= 200 && $response->getStatusCode() < 300) {
-                return $response;
-            } elseif($response->getStatusCode() === 404) {
-                throw new QssModelNotFoundException('Model not found', 404);
-            } else {
-                $message = json_decode($response->getBody(), true)['message'] ?? 'Something went wrong while making the request to QSS!';
-                throw new QssRequestException($message, $response->getStatusCode());
-            }
-        } catch(RequestException | GuzzleException $e) {
-            throw new QssRequestException($e->getMessage(), $e->getCode());
+        if ($response->getStatusCode() >= 200 && $response->getStatusCode() < 300) {
+            return $response;
+        } elseif($response->getStatusCode() === 404) {
+            throw new NotFoundHttpException();
+        } else {
+            $message = json_decode($response->getBody(), true)['message'] ?? 'Something went wrong while making the request to QSS!';
+            throw new HttpException($response->getStatusCode(), $message);
         }
     }
 

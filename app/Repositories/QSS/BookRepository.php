@@ -4,10 +4,10 @@ namespace App\Repositories\QSS;
 
 use App\Models\Book;
 use App\Clients\Qss\Client as QssClient;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use App\Transformers\Qss\BookTransformer as QssBookTransformer;
-use App\Clients\Qss\Exceptions\RequestException as QssRequestException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Repositories\Contracts\BookRepository as BookRepositoryInterface;
-use App\Clients\Qss\Exceptions\ModelNotFoundException as QssModelNotFoundException;
 
 class BookRepository implements BookRepositoryInterface
 {
@@ -20,7 +20,7 @@ class BookRepository implements BookRepositoryInterface
             $item = json_decode($response->getBody(), true);
 
             return Book::createFromTransformer(new QssBookTransformer($item));
-        } catch(QssRequestException $e) {
+        } catch(HttpException $e) {
             abort($e->getCode(), $e->getMessage());
         }
     }
@@ -30,9 +30,9 @@ class BookRepository implements BookRepositoryInterface
         try {
             $this->client->deleteBook($id);
             return true;
-        } catch(QssModelNotFoundException) {
+        } catch(NotFoundHttpException) {
             return false;
-        } catch(QssRequestException $e) {
+        } catch(HttpException $e) {
             abort($e->getCode(), $e->getMessage());
         }
     }
