@@ -48,11 +48,13 @@ abstract class Endpoint
 
         if ($response->getStatusCode() >= 200 && $response->getStatusCode() < 300) {
             return $response;
-        } elseif($response->getStatusCode() === 404) {
-            throw new NotFoundHttpException();
-        } else {
-            $message = json_decode($response->getBody(), true)['message'] ?? 'Something went wrong while making the request to QSS!';
-            throw new HttpException($response->getStatusCode(), $message);
         }
+
+        if($response->getStatusCode() === 404) {
+            throw new NotFoundHttpException();
+        }
+
+        $message = json_decode($response->getBody(), true)['message'] ?? 'Something went wrong while making the request to QSS!';
+        throw new HttpException($response->getStatusCode(), $message);
     }
 }
