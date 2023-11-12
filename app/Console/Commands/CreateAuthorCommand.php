@@ -3,8 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Models\Author;
+use App\Clients\Qss\Qss;
 use Illuminate\Console\Command;
-use App\Clients\Qss\Client as QssClient;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Contracts\Console\PromptsForMissingInput;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -34,10 +34,10 @@ class CreateAuthorCommand extends Command implements PromptsForMissingInput
         $email = $this->getValueWithValidation('email', 'Enter email for login', 'required|email');
         $password = $this->getValueWithValidation('password', 'Enter password for login', 'required', true);
 
-        $client = new QssClient();
+        $qss = new Qss();
 
         try {
-            $response = $client->getAccessToken($email, $password);
+            $response = $qss->token()->get($email, $password);
             $responseBody = json_decode($response->getBody(), true);
             $token = $responseBody['token_key'];
         } catch(HttpException $e) {

@@ -41,7 +41,17 @@ class BooksController
      */
     public function store(CreateBookRequest $request): Response
     {
-        $this->bookRepository->create($request->all());
+        $this->bookRepository->create([
+            'author' => [
+                'id' => (int) $request->author_id
+            ],
+            'title' => $request->title,
+            'release_date' => $request->release_date,
+            'description' => $request->description,
+            'isbn' => $request->isbn,
+            'format' => $request->format,
+            'number_of_pages' => (int) $request->number_of_pages
+        ]);
 
         return redirect()
             ->route('authors.show', [

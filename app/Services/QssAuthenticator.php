@@ -5,7 +5,7 @@ namespace App\Services;
 use DateTime;
 use DateTimeImmutable;
 use App\Models\AuthUser;
-use App\Clients\Qss\Client as QssClient;
+use App\Clients\Qss\Qss;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use App\Transformers\Qss\AuthUserTransformer as QssAuthUserTransformer;
 
@@ -21,7 +21,7 @@ class QssAuthenticator
     public static function attemptLogin(string $email, string $password): array|AuthUser
     {
         try {
-            $response = resolve(QssClient::class)->getAccessToken($email, $password);
+            $response = resolve(Qss::class)->token()->get($email, $password);
 
             $responseBody = json_decode($response->getBody(), true);
 

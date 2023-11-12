@@ -2,10 +2,10 @@
 
 namespace App\Providers;
 
+use App\Clients\Qss\Qss;
 use App\Models\AuthUser;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
-use App\Clients\Qss\Client as QssClient;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,8 +15,8 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(AuthUser::class);
-        $this->app->singleton(QssClient::class, function() {
-            return new QssClient(session('qss_token') ?? null);
+        $this->app->singleton(Qss::class, function() {
+            return new Qss(session('qss_token') ?? null);
         });
     }
 

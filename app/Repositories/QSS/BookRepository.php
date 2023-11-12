@@ -3,18 +3,27 @@
 namespace App\Repositories\QSS;
 
 use App\Models\Book;
-use App\Clients\Qss\Client as QssClient;
+use App\Clients\Qss\Qss;
+use App\Clients\Qss\Books;
 use App\Transformers\Qss\BookTransformer as QssBookTransformer;
 use App\Repositories\Contracts\BookRepository as BookRepositoryInterface;
 
 class BookRepository implements BookRepositoryInterface
 {
     /**
+     * @var Books
+     */
+    protected Books $books;
+
+    /**
      * constructor
      *
-     * @param QssClient $client
+     * @param Qss $client
      */
-    public function __construct(protected QssClient $client) {}
+    public function __construct(Qss $qss)
+    {
+        $this->books = $qss->books();
+    }
 
     /**
      * Creates a book
@@ -24,7 +33,7 @@ class BookRepository implements BookRepositoryInterface
      */
     public function create(array $body): Book
     {
-        $response = $this->client->createBook($body);
+        $response = $this->books->create($body);
         $item = json_decode($response->getBody(), true);
 
         return Book::createFromTransformer(new QssBookTransformer($item));
@@ -38,6 +47,6 @@ class BookRepository implements BookRepositoryInterface
      */
     public function delete(string $id): bool
     {
-        return (bool) $this->client->deleteBook($id);
+        return (bool) $this->books->delete($id);
     }
 }
