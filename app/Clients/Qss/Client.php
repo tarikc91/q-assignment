@@ -70,21 +70,14 @@ class Client
         }
     }
 
-    public function getAccessToken(string $email, string $password): array
+    public function getAccessToken(string $email, string $password): ResponseInterface
     {
         $body = [
             'email' => $email,
             'password' => $password
         ];
 
-        $response = $this->request('POST', 'token', [], $body);
-
-        $responseBody = json_decode($response->getBody(), true);
-
-        return [
-            'token' => $responseBody['token_key'],
-            'user' => $responseBody['user']
-        ];
+        return $this->request('POST', 'token', [], $body);
     }
 
     public function getAuthors(array $queryParams = []): ResponseInterface
@@ -92,7 +85,7 @@ class Client
         return $this->request('GET', 'authors', [], $queryParams);
     }
 
-    public function getAuthor(mixed $id): ResponseInterface
+    public function getAuthor(string $id): ResponseInterface
     {
         return $this->request('GET', "authors/{$id}");
     }
@@ -132,12 +125,12 @@ class Client
         return $this->request('POST', 'authors', [], $body);
     }
 
-    public function deleteBook(mixed $id): ResponseInterface
+    public function deleteBook(string $id): ResponseInterface
     {
         return $this->request('DELETE', "books/{$id}");
     }
 
-    public function deleteAuthor(mixed $id): ResponseInterface
+    public function deleteAuthor(string $id): ResponseInterface
     {
         return $this->request('DELETE', "authors/{$id}");
     }

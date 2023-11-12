@@ -44,7 +44,9 @@ class BooksController
         $this->bookRepository->create($request->all());
 
         return redirect()
-            ->route('authors.show', ['author' => $request->author_id])
+            ->route('authors.show', [
+                'author' => $request->author_id
+            ])
             ->with('success', 'A new book is created.');
     }
 
@@ -58,6 +60,8 @@ class BooksController
     {
         $this->bookRepository->delete($id);
 
-        return redirect()->back()->with('success', 'Book has been deleted.');
+        return redirect()
+            ->back()
+            ->with('success', 'Book has been deleted.');
     }
 }

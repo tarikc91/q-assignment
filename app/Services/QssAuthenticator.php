@@ -22,13 +22,16 @@ class QssAuthenticator
     {
         try {
             $response = resolve(QssClient::class)->getAccessToken($email, $password);
-            return static::login($response['token'], $response['user']);
-        } catch(HttpException $e) {
-            if($e->getStatusCode() === 403) {
+
+            $responseBody = json_decode($response->getBody(), true);
+
+            return static::login($responseBody['token_key'], $responseBody['user']);
+        } catch(HttpException $exception) {
+            if($exception->getStatusCode() === 403) {
                 return ['error' => 'User not found or inactive or password not valid.'];
             }
 
-            throw $e;
+            throw $exception;
         }
     }
 

@@ -4,8 +4,6 @@ namespace App\Repositories\QSS;
 
 use App\Models\Author;
 use App\Clients\Qss\Client as QssClient;
-use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Transformers\Qss\AuthorTransformer as QssAuthorTransformer;
 use App\Repositories\Contracts\AuthorRepository as AuthorRepositoryInterface;
 
@@ -13,45 +11,46 @@ class AuthorRepository implements AuthorRepositoryInterface
 {
     public function __construct(protected QssClient $client) {}
 
+    /**
+     * Returns all authors
+     *
+     * @return array
+     */
     public function all(): array
     {
-        try {
-            $response = $this->client->getAuthors();
-            $items = json_decode($response->getBody(), true)['items'];
+        $response = $this->client->getAuthors();
+        $items = json_decode($response->getBody(), true)['items'];
 
-            $authors = array_map(function ($item) {
-                return Author::createFromTransformer(new QssAuthorTransformer($item));
-            }, $items);
+        $authors = array_map(
+            fn($item) => Author::createFromTransformer(new QssAuthorTransformer($item)), 
+            $items
+        );
 
-            return $authors;
-        } catch(HttpException $e) {
-            abort($e->getCode(), $e->getMessage());
-        }
+        return $authors;
     }
 
-    public function find($id): ?Author
+    /**
+     * Finds an author
+     *
+     * @param string $id
+     * @return Author|null
+     */
+    public function find(string $id): ?Author
     {
-        try {
-            $response = $this->client->getAuthor($id);
-            $item = json_decode($response->getBody(), true);
+        $response = $this->client->getAuthor($id);
+        $item = json_decode($response->getBody(), true);
 
-            return Author::createFromTransformer(new QssAuthorTransformer($item));
-        } catch(NotFoundHttpException) {
-            return null;
-        } catch(HttpException $e) {
-            abort($e->getCode(), $e->getMessage());
-        }
+        return Author::createFromTransformer(new QssAuthorTransformer($item));
     }
 
-    public function delete(mixed $id): bool
+    /**
+     * Deletes an author
+     *
+     * @param string $id
+     * @return boolean
+     */
+    public function delete(string $id): bool
     {
-        try {
-            $this->client->deleteAuthor($id);
-            return true;
-        } catch(NotFoundHttpException) {
-            return false;
-        } catch(HttpException $e) {
-            abort($e->getCode(), $e->getMessage());
-        }
+        return (bool) $this->client->deleteAuthor($id);
     }
 }
